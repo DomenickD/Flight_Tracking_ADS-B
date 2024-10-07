@@ -1,7 +1,12 @@
-import requests
+"""
+Runs with:
+uvicorn app:app --reload  
+"""
+
 import os
 import time
 from datetime import datetime, timezone
+import requests
 import pandas as pd
 from dotenv import load_dotenv
 import schedule
