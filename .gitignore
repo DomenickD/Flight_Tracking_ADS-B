@@ -169,3 +169,22 @@ data/
 
 adsb/adsb_data
 
+adsb/adsb_data_500
+
+Project/backend/models/adsb_rf_model.pkl
+Project/backend/models/adsb_scaler.pkl
+Project/backend/models/adsb_le.pkl
+
+# Ignore database files
+Project/backend/adsb_data.db
+Project/frontend/adsb_data.db
+Project/database/adsb_data.db
+
+# Ignore data files
+Project/database/data_files/
+
+# Ignore other large files if any
+*.pkl
+*.db
+*.csv
+

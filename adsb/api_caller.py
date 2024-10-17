@@ -21,13 +21,13 @@ API_HOST = "adsbexchange-com1.p.rapidapi.com"
 # Define the area of interest (e.g., Tampa Bay area coordinates)
 LATITUDE = 27.9506
 LONGITUDE = -82.4572
-DISTANCE = 50  # Radius in nautical miles
+DISTANCE = 500  # Radius in nautical miles
 
 # API endpoint template
 API_URL_TEMPLATE = "https://{host}/v2/lat/{lat}/lon/{lon}/dist/{dist}/"
 
 # Directory to store data
-DATA_DIR = "adsb_data"
+DATA_DIR = "adsb_data_500"
 os.makedirs(DATA_DIR, exist_ok=True)
 
 
