@@ -4,7 +4,8 @@ import sqlite3
 import pickle
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Request
-from pydantic import BaseModel
+
+# from pydantic import BaseModel
 from sklearn.preprocessing import LabelEncoder
 
 # Initialize FastAPI app
@@ -15,6 +16,9 @@ label_encoder = LabelEncoder()
 # Load the pre-trained models from pickle files
 with open(r"models/adsb_rf_model.pkl", "rb") as model_file:
     best_rf_model = pickle.load(model_file)
+
+with open(r"models/airport_rf_model.pkl", "rb") as model_file:
+    rf_model = pickle.load(model_file)
 
 with open(r"models/adsb_scaler.pkl", "rb") as model_file:
     scaler = pickle.load(model_file)
@@ -57,21 +61,21 @@ async def predict_adsb_category(request: Request):
     """
     try:
         columns_order = [
-            "lon",
-            "emergency",
+            "alt_baro",
             "flight",
-            "nac_p",
-            "gs",
-            "t",
+            "nav_altitude_mcp",
+            "emergency",
+            "lon",
             "alert",
             "baro_rate",
-            "alt_baro",
-            "track",
-            "hex",
-            "alt_geom",
-            "lat",
+            "gs",
             "geom_rate",
-            "nav_altitude_mcp",
+            "hex",
+            "lat",
+            "alt_geom",
+            "track",
+            "t",
+            "nac_p",
             "nac_v",
         ]
         # Get the JSON data from the request
@@ -88,6 +92,45 @@ async def predict_adsb_category(request: Request):
         category = le.inverse_transform([prediction])[0]
         print(category)
         return {"category": category}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error during prediction: {e}")
+
+
+@app.post("/airport_predict_adsb")
+async def airport_predict_adsb(request: Request):
+    """
+    This function takes in an array of data and uses it to
+    predict the Lat and Long of the nearest Airport against a pretrained model.
+    """
+    try:
+        columns_order = [
+            "alt_baro",
+            "nav_altitude_mcp",
+            "lon",
+            "gs",
+            "geom_rate",
+            "lat",
+            "track",
+            "nac_p",
+            "nac_v",
+        ]
+
+        # Get the JSON data from the request
+        json_data = await request.json()
+        df = pd.DataFrame([json_data], columns=columns_order)
+
+        print(df)
+        predictions = rf_model.predict(df)[0]
+
+        # Perform prediction
+        predicted_lat = predictions[0]
+        predicted_lon = predictions[1]
+
+        # category = le.inverse_transform([prediction])[0]
+        print(f"predicted_lat {predicted_lat}")
+        print(f"predicted_lon {predicted_lon}")
+        return {"predicted_lat": predicted_lat, "predicted_lon": predicted_lon}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during prediction: {e}")
@@ -112,11 +155,11 @@ async def query_route(request: Request):
     except sqlite3.DatabaseError as db_error:
         raise HTTPException(status_code=500, detail=f"Database error: {str(db_error)}")
 
-    # except ValueError as val_error:
-    #     raise HTTPException(status_code=400, detail=f"Value error: {str(val_error)}")
+    except ValueError as val_error:
+        raise HTTPException(status_code=400, detail=f"Value error: {str(val_error)}")
 
-    # except KeyError as key_error:
-    #     raise HTTPException(status_code=400, detail=f"KeyError: {str(key_error)}")
+    except KeyError as key_error:
+        raise HTTPException(status_code=400, detail=f"KeyError: {str(key_error)}")
 
-    # except IOError as io_error:
-    #     raise HTTPException(status_code=500, detail=f"IOError: {str(io_error)}")
+    except IOError as io_error:
+        raise HTTPException(status_code=500, detail=f"IOError: {str(io_error)}")
